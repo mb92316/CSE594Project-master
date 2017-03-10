@@ -56,14 +56,10 @@ public class AddNote extends AppCompatActivity {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                "SPEAK");
         try {
             startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
         } catch (ActivityNotFoundException a) {
-            Toast.makeText(getApplicationContext(),
-                    "SPEAK",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
         }
     }
 

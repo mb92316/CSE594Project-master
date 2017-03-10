@@ -3,6 +3,7 @@ package com.example.android.cse594project;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.KeyguardManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -41,6 +42,7 @@ import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import javax.crypto.KeyGenerator;
 
@@ -251,32 +253,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void command(View view) {
+        promptSpeechInput();
+    }
+
+    private void promptSpeechInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        try {
+            startActivityForResult(intent, 4);
+        } catch (ActivityNotFoundException a) {
+            Toast.makeText(getApplicationContext(), "Voice Failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     public void settings(View view){
         registerForContextMenu(view);
         openContextMenu(view);
-        /*
-        PopupMenu popupMenu = new PopupMenu(this, view);
-
-        popupMenu.inflate(R.menu.settings_menu);
-
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if(item.getItemId() == R.id.pinpad){
-                    item.setChecked(true);
-                    //set pinpad
-                }
-
-                else if(item.getItemId() == R.id.fingerprint){
-                    //set fingerprint
-                }
-                return false;
-            }
-        });
-
-        popupMenu.show();
-        */
     }
 
     @Override
@@ -421,7 +416,6 @@ public class MainActivity extends AppCompatActivity {
             if (cursor != null) {
                 noteCursor c = new noteCursor(this, cursor);
                 noteList.setAdapter(c);
-
                 noteList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     public void onItemClick(AdapterView<?> adaptView, View view, int newInt,
                                             long newLong) {
