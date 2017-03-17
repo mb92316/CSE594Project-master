@@ -6,11 +6,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-
+/*
+This class receives a broadcast from the Android alarmManager to create and display a system notification.
+ */
 public class NotificationPublisher extends BroadcastReceiver {
 
     public static String NOTIFICATION_ID = "notification-id";
-    public static String NOTIFICATION = "notification";
     String note;
     DBHandler dbHandler;
     Crypt crypt;
@@ -33,11 +34,13 @@ public class NotificationPublisher extends BroadcastReceiver {
         dbHandler.updateAlarm(id, -1);
     }
 
+    //This function gets the note from the database using the noteID.
     public void getNote() {
         dbHandler = new DBHandler(mcontext, null, null, 1);
         note = dbHandler.getNote(noteID);
     }
 
+    //This function builds the notification to be displayed.
     private Notification getNotification(String content) {
         Notification.Builder builder = new Notification.Builder(mcontext);
         builder.setContentTitle("ALARM!");

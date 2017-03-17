@@ -9,6 +9,11 @@ import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
 
+/*
+This class extends the cursorAdapter class. It is used to bind a cursor to the list view. As the cursor
+iterates through the table, the noteID is set to a textView and note is set to another textView. Before
+being bound to the textView, the note is decrypted.
+ */
 public class noteCursor extends CursorAdapter {
     public noteCursor(Context context, Cursor cursor) {
         super(context, cursor, 0);

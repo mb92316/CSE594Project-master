@@ -8,6 +8,10 @@ import android.os.CancellationSignal;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
+/*
+This fucntion is used to listen for a users fingerprint and will authenticate that fingerprint using the
+cryptoObject sent to it. If the user successfully authenticate it will callback the FingerPrint class.
+ */
 public class FingerprintHandler extends FingerprintManager.AuthenticationCallback {
 
 

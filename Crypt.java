@@ -8,8 +8,15 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
+/* This class will take an unencrypted string as input and return an encrypted string. It will
+also take an encrypted string and return an unencrypted string.
+*/
 public class Crypt {
 
+    /*
+    This class takes a string as input and uses an AES key that is stored in the Android KeyStore to
+    encrypt that string.
+     */
     public static String encrypt(String plaintext) {
         try {
             GetKey key = new GetKey();
@@ -18,8 +25,6 @@ public class Crypt {
             byte[] ivbytes = new byte[ 16 ];
             IvParameterSpec iv = new IvParameterSpec(ivbytes);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
-           // byte[] cipherText = cipher.doFinal(plaintext.getBytes("utf-8"));
-            //byte[] combinedBytes = combine(ivbytes, cipherText);
             byte[] cipherText = cipher.doFinal(plaintext.getBytes("utf-8"));
             byte[] combinedBytes= new byte[cipherText.length + ivbytes.length];
             System.arraycopy(ivbytes,0,combinedBytes,0,ivbytes.length);
@@ -30,6 +35,10 @@ public class Crypt {
         }
     }
 
+    /*
+    This class takes a string as input and decrypts the string by using an AES key stored in the
+    Android KeyStore. The decrypted string is then returned to the calling function.
+     */
     public static String decrypt(String encoded) {
         try {
             GetKey key = new GetKey();

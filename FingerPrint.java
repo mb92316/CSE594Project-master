@@ -28,6 +28,9 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
+/*
+This class is called to lock the screen until the user unlock the device with their fingerprint.
+ */
 public class FingerPrint extends AppCompatActivity {
     FingerprintManager fingerprintManager;
     KeyguardManager keyguardManager;
@@ -61,6 +64,11 @@ public class FingerPrint extends AppCompatActivity {
         authenticate();
     }
 
+    /*
+    This function will use an AES key and a symmetric key to with a cypher object. That cypher object is then
+    sent to the fingerprint manager and a fingerprint cryptoobject is called to allow fingerprint authentication. The
+    FingerPrintHandler class is called with the crypto object.
+     */
     public void authenticate() {
         try {
             KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -77,25 +85,14 @@ public class FingerPrint extends AppCompatActivity {
             FingerprintHandler helper = new FingerprintHandler(this);
             helper.startAuth(fingerprintManager, cryptoObject);
 
-            /*
-            if (cipherInit()) {
-                FingerprintManager.CryptoObject cryptoObject = new FingerprintManager.CryptoObject(cipher);
-                FingerprintHandler helper = new FingerprintHandler(this);
-                helper.startAuth(fingerprintManager, cryptoObject);
-            }
-        }  catch (KeyStoreException |
-                CertificateException | IOException
-                | NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        */
-
         }catch (KeyStoreException | CertificateException | UnrecoverableKeyException| IOException | NoSuchAlgorithmException | InvalidKeyException
                         e){
             Toast.makeText(this, "Failed to create a symmetric key for pinpad", Toast.LENGTH_LONG).show();
             throw new RuntimeException("Failed to create a symmetric key", e);
         }
     }
+
+    //If the user has successfully authenticated, this function is called.
     public void success() {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("resultcode", 1);
@@ -103,6 +100,7 @@ public class FingerPrint extends AppCompatActivity {
         finish();
     }
 
+    //This function will generate a AES key and store it in the Android keystore.
     protected void generateKey() {
         try {
             keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -112,7 +110,7 @@ public class FingerPrint extends AppCompatActivity {
         try {
             keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new RuntimeException("Failed to get KeyGenerator instance", e);
+            throw new RuntimeException(e);
         }
         try {
             keyStore.load(null);
@@ -120,8 +118,7 @@ public class FingerPrint extends AppCompatActivity {
                     KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                     .setUserAuthenticationRequired(true)
-                    .setEncryptionPaddings(
-                            KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                     .build());
             keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException |

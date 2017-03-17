@@ -32,7 +32,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
@@ -43,30 +42,27 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Locale;
-
 import javax.crypto.KeyGenerator;
-
 import static com.example.android.cse594project.R.id.pinpaditem;
-public class MainActivity extends AppCompatActivity {
 
+/*
+This class acts as a hub for the entire project. This class is used to show the notes the user entered. It
+also allows the user to go to other activities such as adding a note and editing a note. The user can also set
+their lock screen preferences.
+ */
+public class MainActivity extends AppCompatActivity {
     KeyguardManager mKeyguardManager;
     public Context mcontext;
-    public int k;
     EditText noteField;
     ListView noteList;
     static DBHandler dbHandler;
     FingerprintManager fingerprintManager;
-    //Key to encrypt notes
     String KEY_NAME = "note_key";
-
-    //Key used during pinpad and fingerprint unlock
     String PIN_KEY = "pin_key";
-
-    //The boolean to show notes if pinpad and fingerpad unlock works
+    //This Boolean is used to determine whether or not to show the notes based upon the users lockscreen preferences.
     Boolean showBool = false;
     int pinBool;
     int fingerBool;
-    //This is the test byte that is used by the pinpad and fingerpad unlock
     private static final byte[] SECRET_BYTE_ARRAY = new byte[] {1, 2, 3, 4, 5, 6};
     SharedPreferences pref;
     SharedPreferences.Editor editor;
@@ -80,21 +76,20 @@ public class MainActivity extends AppCompatActivity {
         Button mySettingsButton = (Button) findViewById(R.id.settings);
         Button myCloudNotesButton = (Button) findViewById(R.id.cloudNotes);
         Button myAddNoteButton = (Button) findViewById(R.id.addNote);
+        Button voiceButton = (Button) findViewById(R.id.voicecommand);
         mySettingsButton.setTypeface(myTypeface);
         myCloudNotesButton.setTypeface(myTypeface);
         myAddNoteButton.setTypeface(myTypeface);
+        voiceButton.setTypeface(myTypeface);
         pref = getApplicationContext().getSharedPreferences("MyPref", 0);
-
         mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
         dbHandler = new DBHandler(this, null, null, 1);
         noteField = (EditText) findViewById(R.id.notetext);
         noteList = (ListView) findViewById(R.id.list);
         pref = getApplicationContext().getSharedPreferences("MyPref", 0);
-
         pinBool = pref.getInt("pinpadInt", 0);
         fingerBool = pref.getInt("fingerInt", 0);
         keyCheck();
-
         if(pinBool == 1 && fingerBool == 1) {
             fingerprintwithpin();
         }
@@ -110,7 +105,10 @@ public class MainActivity extends AppCompatActivity {
         showNotes();
     }
 
-
+    /*
+    This class is called if the user has enabled a fingerprint lockscreen and will call the fingerprint activity.
+    If the user does not have fingerprints registered, the class will turn off the fingerprint lock.
+     */
     public void fingerprint() {
         editor = pref.edit();
 
@@ -129,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /*
+    This class is called if a user has both fingerprint and lockscreen enabled.
+     */
     public void fingerprintwithpin() {
 
         editor = pref.edit();
@@ -214,16 +215,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*
-    Used in the pinpad lock screen. It gets the key that was generated previously and calls a
-    cipher instance using the same properties (AES, CBC, and Padding PKCS7) used to create the key.
-    It will then attempt to encrypt a block of bytes with this key. Because the secret key when
-    generated required UserAuthentication, if the encryption works, the user has recently authenticated.
-    If they have not recently authenticated, showAtuthenticationScreen is called.
+    This class will show the authentication screen. If the user and after they authenticate the notes can be shown
+    and showBool is set to true.
      */
     private void pinAuthenticate() {
         showAuthenticationScreen();
         showBool = true;
         /*
+        If you want to check if user has authenticated recently
         try {
             KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
             keyStore.load(null);
@@ -253,10 +252,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //This class is called by the voice button and allows for voice to text.
     public void command(View view) {
         promptSpeechInput();
     }
 
+    /*  This function prompts the user to speak and will call the built in android speech recognizer.
+    When the speech recognizer ends, it will return with a activity result of 4 and a string consisting
+    of what the user said.
+ */
     private void promptSpeechInput() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -268,12 +272,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
+    //This button will open a context menu allowing the users to set their lockscreen preferences.
     public void settings(View view){
         registerForContextMenu(view);
         openContextMenu(view);
     }
 
+    /*
+    This function is used to create a menu allowing the user the create set lockscreen preferences.
+    */
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo){
         super.onCreateContextMenu(menu, view, menuInfo);
@@ -296,10 +303,14 @@ public class MainActivity extends AppCompatActivity {
         else {
             fingerprintItem.setChecked(false);
         }
-        MenuItem menuItem = menu.findItem(R.id.cancelbutton);
 
     }
 
+    /*
+    This function is called when a user selects an item from the menu. It makes use of android prefences.
+    If the user selects a pin lockscreen, the integer pinBool will be set to 1, if they disable the lockscreen it is set to 0.
+    If the user select a fingerprint lockscreen, fingerBool is set to 1, if they disable the finger lock screen it is set to 0.
+     */
     @Override
     public boolean onContextItemSelected(MenuItem item){
         editor = pref.edit();
@@ -347,17 +358,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onContextItemSelected(item);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  POP UP SETTINGS ABOVE IS NOT FUNCTIONAL. REGULAR SETTINGS BELOW IS FUNCTIONAL.
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /*
-    //Starts settings activitiy when settings button is pressed.
-    public void settings(View view) {
-        Intent intent = new Intent(this, Settings.class);
-        startActivity(intent);
-    }
-    */
     //Starts newNote activity when add note button is pressed.
     public void newNote(View view) {
         Intent intent = new Intent(this, AddNote.class);
@@ -365,7 +365,13 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, 1);
     }
 
-    //This
+    /*
+    This function is called when another activity finishes. If the requestCOde is 1, the user has successfully added,
+    deleted, or edited a note, and the result is displayed to the user. If the request code is 2, a user has successfully
+    authenticated with their fingerprints and showBool is now true. If the request code is 3, the user has successfully
+    authenticated with their fingerprints and the pinpad unlock is now called. If the request code is 4, the voice to text
+    has finished and what the user said is displayed as a string.
+     */
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
@@ -384,7 +390,6 @@ public class MainActivity extends AppCompatActivity {
                 fingerprint();
             }
         }
-
         if (requestCode == 3){
             if(data != null) {
                 showBool = true;
@@ -394,22 +399,23 @@ public class MainActivity extends AppCompatActivity {
                 fingerprint();
             }
         }
-
         if (requestCode == 4) {
             if (resultCode == RESULT_OK && null != data) {
 
-                ArrayList<String> result = data
-                        .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 Toast.makeText(this, result.get(0), Toast.LENGTH_LONG).show();
                 if(result.get(0).equals("add")){
                     Intent intent = new Intent(this, AddNote.class);
                     startActivityForResult(intent, 1);
                 }
-
             }
         }
     }
 
+    /*
+    This function is used to show the notes that the user has entered. It will only show the notes if the
+    user has not enabled a lockscreen or if they have successfully authenticated in some manner.
+     */
     public void showNotes() {
         if(showBool == true) {
             Cursor cursor = dbHandler.getNotes();
@@ -440,8 +446,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /* This function is called when a user swipes to delete a note. If side is 1, the user has swiped right.
+     If side is 2, the user has swiped left. A popup menu is called verifying the deletion. If the user enters
+    yes, the note is deleted and an animation is called moving the note offscreen. If they click no, nothing happens.
+     */
     public void delete(final int pos, final int side){
-
         AlertDialog.Builder a_builder = new AlertDialog.Builder(this);
         a_builder.setMessage("Are you sure you want to delete this note?");
         a_builder.setPositiveButton("yes", new DialogInterface.OnClickListener() {
@@ -489,16 +498,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    //This function is an animaiton that moves the note in a direction offscreen.
     private Animation deleteAnimation(float direction) {
         int duration = 200;
-        Animation outtoLeft = new TranslateAnimation(
+        Animation movement = new TranslateAnimation(
                 Animation.RELATIVE_TO_PARENT, 0.0f,
                 Animation.RELATIVE_TO_PARENT, direction,
                 Animation.RELATIVE_TO_PARENT, 0.0f,
                 Animation.RELATIVE_TO_PARENT, 0.0f);
-        outtoLeft.setDuration(duration);
-        outtoLeft.setInterpolator(new AccelerateInterpolator(1));
-        return outtoLeft;
+        movement.setDuration(duration);
+        movement.setInterpolator(new AccelerateInterpolator(1));
+        return movement;
     }
-
 }

@@ -9,11 +9,14 @@ import java.security.cert.CertificateException;
 
 import javax.crypto.SecretKey;
 
+/*
+This class is used to return the key used to store note. Future work will have this class generate all keys
+and return keys that have been previously generated.
+ */
 public class GetKey {
     SecretKey secretKey;
     KeyStore keyStore;
     String KEY_NAME = "note_key";
-    String PIN_KEY = "pin_key";
 
     public SecretKey getKey()
     {

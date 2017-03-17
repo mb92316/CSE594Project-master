@@ -4,6 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+/*
+This class receives a broadcast from the android alarmManager when an alarm a user has set goes off.
+This class will grab the note from the database using the noteID and send the note to the service TTS
+so it can be spoken to the user.
+ */
+
 public class AlarmPublisher extends BroadcastReceiver {
 
     String note;
@@ -28,6 +34,7 @@ public class AlarmPublisher extends BroadcastReceiver {
         dbHandler.updateAlarm(id, -1);
     }
 
+    //Grabs the note from the database using the note id.
     public void getNote() {
         dbHandler = new DBHandler(mcontext, null, null, 1);
         note = dbHandler.getNote(id);

@@ -30,15 +30,14 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+/*
+This class is used to edit or delete a note. It is also used to set an alarm for a note.
+ */
 public class NoteHelper extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener{
-
     EditText noteField;
-    Button b_pick;
     DBHandler dbHandler;
     int id;
     String noteText;
-    Button notificationButton;
-    Button voiceButton;
     Crypt crypt;
     String dateString;
     int day, month, year, hour, minute;
@@ -47,8 +46,6 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
     SharedPreferences pref;
     SharedPreferences.Editor editor;
     int alarmID;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +61,6 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         myDeleteButton.setTypeface(myTypeface);
         myAlarmButton.setTypeface(myTypeface);
         mySaveButton.setTypeface(myTypeface);
-
         Bundle extras = getIntent().getExtras();
         id = extras.getInt("id");
         noteText = extras.getString("notetext");
@@ -76,8 +72,8 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         getDate();
     }
 
+    //This function is used to delete a note and is called by the delete button
     public void deleteNote(View view) {
-
         AlertDialog.Builder a_builder = new AlertDialog.Builder(this);
         a_builder.setMessage("Are you sure you want to delete this note?");
         a_builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -102,6 +98,7 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
 
     }
 
+    //This function is used to update a note and is called by the save button.
     public void updateNote(View view) {
         String n = noteField.getText().toString();
         String encryptedNote = Crypt.encrypt(n);
@@ -112,52 +109,28 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         finish();
     }
 
+    //This function will create a context menu for the alarm settings.
     public  void alarm (View view){
-
         registerForContextMenu(view);
             openContextMenu(view);
-        /*
-        PopupMenu popupMenu = new PopupMenu(this, view);
-
-        popupMenu.inflate(R.menu.alarm_menu);
-
-        MenuItem menuItem =
-
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if(item.getItemId() == R.id.alarmbutton) {
-                    item.title
-                    //set notification alarm
-                }
-                else if (item.getItemId() == R.id.voicebutton) {
-                    //set voice alarm
-                }
-                else if (item.getItemId() == R.id.cancelbutton) {
-                    //cancel alarm
-                }
-                return false;
-            }
-        });
-
-        popupMenu.show();
-        */
     }
-
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo){
             super.onCreateContextMenu(menu, view, menuInfo);
             MenuInflater menuInflater = getMenuInflater();
             menuInflater.inflate(R.menu.alarm_menu, menu);
-
-            MenuItem menuItem = menu.findItem(R.id.cancelbutton);
         }
 
+    /*
+    After a user selects an option from the context menu, this function is called. If the user selects a
+    notification alarm, their choice will be 1. If they select a voice alarm their choice will be 2. If
+    they select to cancel an alarm, the cancel alarm function is called. If the user selects a the
+    Android datepicker is called for the user to set a date for the alarm.
+     */
     @Override
     public boolean onContextItemSelected(MenuItem item){
         Calendar c = Calendar.getInstance();
-
         switch (item.getItemId()){
             case R.id.alarmbutton: {
                 choice = 1;
@@ -182,6 +155,7 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
                 int alarmType = dbHandler.getAlarmType(id);
                 if (alarmID != -1) {
                     cancel(currentAlarmID, alarmType);
+                    Toast.makeText(getApplicationContext(), "Alarm Canceled", Toast.LENGTH_SHORT).show();
                 }
                 return true;
             }
@@ -189,6 +163,10 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         return super.onContextItemSelected(item);
     }
 
+    /*
+    This function is called after the user picks a date and sets the, day, month, and year to the date
+    the user picked. The timepicker is then called for the user to pick a time for the alarm.
+     */
     public void onDateSet(DatePicker view, int i, int i1, int i2) {
         yearFinal = i;
         monthFinal = i1 + 1;
@@ -196,11 +174,15 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         Calendar c = Calendar.getInstance();
         hour=c.get(Calendar.HOUR_OF_DAY);
         minute=c.get(Calendar.MINUTE);
-        TimePickerDialog timePickerDialog = new TimePickerDialog(this, this,
-                hour, minute, DateFormat.is24HourFormat(this));
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this, this, hour, minute, DateFormat.is24HourFormat(this));
         timePickerDialog.show();
     }
 
+    /*
+    After the user has picked a time for the alarm, hourFinal and minuteFinal are set to the time they picked. The date
+    the user picked is subtracted from the date that the user entered and the results are received in milliseconds. This
+    difference in time is then sent to scheduleNoteNotification or scheduleVoiceNotification.
+     */
     public void onTimeSet(TimePicker view, int i, int i1) {
         hourFinal   = i;
         minuteFinal = i1;
@@ -210,9 +192,6 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         Date d1 = new Date();
         int alarmID = dbHandler.getAlarm(id);
         int alarmType = dbHandler.getAlarmType(id);
-        if(alarmID != -1) {
-            cancel(alarmID, alarmType);
-        }
         try {
             d1 = ft.parse(test);
         }catch (ParseException e) {
@@ -222,6 +201,10 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         dateString = ft.format(d1);
         System.out.println(diff);
         if(diff > 0) {
+            if(alarmID != -1) {
+                cancel(alarmID, alarmType);
+                Toast.makeText(this, "New alarm set for note", Toast.LENGTH_LONG).show();
+            }
             if (choice == 1) {
                 scheduleNoteNotification(diff);
             } else if (choice == 2) {
@@ -235,8 +218,15 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         }
     }
 
+    /*
+    This function used to create create a pendingIntent to be received by NotificationPublisher. It
+    will then call alarmManager with that pendingIntent to be displayed after the number of milliseconds between
+    the current time and the time the user wishes to be notified.It will update the database with the date of the
+    alarm, the type of alarm, and the ID of the alarm.
+     */
     private void scheduleNoteNotification(long delay) {
         editor = pref.edit();
+        pref.getInt("AlarmID", alarmID);
         alarmID++;
         editor.putInt("AlarmID", alarmID);
         editor.commit();
@@ -252,9 +242,15 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         finish();
     }
 
-
+    /*
+This function used to create create a pendingIntent to be received by AlarmPublisher. It
+will then call alarmManager with that pendingIntent to be displayed after the number of milliseconds between
+the current time and the time the user wishes to be notified.It will update the database with the date of the
+alarm, the type of alarm, and the ID of the alarm.
+ */
     private void scheduleVoiceNotification(long delay) {
         editor = pref.edit();
+        alarmID = pref.getInt("AlarmID", alarmID);
         alarmID++;
         editor.putInt("AlarmID", alarmID);
         editor.commit();
@@ -270,11 +266,6 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         finish();
     }
 
-    public void cancelAlarm(View view) {
-
-
-    }
-
     public void cancel(int currentAlarmID, int alarmType){
         if (alarmType == 1){
             Intent notificationIntent = new Intent(this, NotificationPublisher.class);
@@ -283,7 +274,6 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), alarmID, notificationIntent, 0);
             AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
             alarmManager.cancel(pendingIntent);
-            Toast.makeText(getApplicationContext(), "Alarm Canceled", Toast.LENGTH_SHORT).show();
             finish();
         }
         else if(alarmType == 2) {
@@ -304,21 +294,6 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
         finish();
     }
 
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //      POP UP ALARM ABOVE IS NOT FUNCTIONAL. REGULAR ALARM BELOW IS FUNCTIONAL
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-    public void alarm(View view) {
-        Bundle bundle = new Bundle();
-        bundle.putString("notetext", noteText);
-        bundle.putInt("id", id);
-        Intent intent = new Intent(getApplicationContext(), Alarm.class);
-        intent.putExtras(bundle);
-        startActivityForResult(intent, 1);
-    }
-*/
     public void getDate() {
        TextView alarmField = (TextView) findViewById(R.id.alarmfield);
         String date =  dbHandler.getDate(id);
@@ -329,7 +304,6 @@ public class NoteHelper extends AppCompatActivity implements DatePickerDialog.On
             alarmField.setText("Alarm: ");
         }
     }
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         getDate();
     }
